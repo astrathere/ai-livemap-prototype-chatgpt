@@ -71,34 +71,63 @@ const map = L.map("map", {
 }).setView([37.541, 126.879], 13);
 
 const tileLayers = {
-  street: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
-    maxZoom: 18,
-    attribution: "Tiles &copy; Esri"
+  street: L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+    subdomains: "abcd",
+    maxZoom: 19,
+    crossOrigin: true,
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
   }),
-  gray: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
-    maxZoom: 18,
-    attribution: "Tiles &copy; Esri"
+  gray: L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+    subdomains: "abcd",
+    maxZoom: 19,
+    crossOrigin: true,
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
   }),
   satellite: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
     maxZoom: 18,
+    crossOrigin: true,
     attribution: "Tiles &copy; Esri"
+  }),
+  fallback: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    subdomains: "abc",
+    maxZoom: 19,
+    crossOrigin: true,
+    attribution: '&copy; OpenStreetMap contributors'
   })
 };
 
-function setBaseLayer(style) {
-  if (currentBaseLayer) map.removeLayer(currentBaseLayer);
-  currentBaseLayer = tileLayers[style];
+let tileErrorCount = 0;
+
+function setBaseLayer(style, silent = false) {
+  tileErrorCount = 0;
+
+  if (currentBaseLayer) {
+    currentBaseLayer.off("tileerror");
+    map.removeLayer(currentBaseLayer);
+  }
+
+  currentBaseLayer = tileLayers[style] || tileLayers.street;
+  currentBaseLayer.on("tileerror", () => {
+    tileErrorCount += 1;
+    if (tileErrorCount >= 4 && style !== "fallback") {
+      setBaseLayer("fallback", true);
+      showToast("지도 타일 로딩이 불안정해 기본 지도로 전환했습니다.");
+    }
+  });
+
   currentBaseLayer.addTo(map);
 
   $$(".map-style-popover button").forEach((button) => {
     button.classList.toggle("selected", button.dataset.style === style);
   });
 
-  const label = style === "satellite" ? "위성 지도" : style === "gray" ? "그레이 지도" : "일반 지도";
-  showToast(`${label}로 변경했습니다.`);
+  if (!silent) {
+    const label = style === "satellite" ? "위성 지도" : style === "gray" ? "그레이 지도" : "일반 지도";
+    showToast(`${label}로 변경했습니다.`);
+  }
 }
 
-setBaseLayer("street");
+setBaseLayer("street", true);
 
 const southWest = L.latLng(37.33, 126.58);
 const northEast = L.latLng(37.72, 127.17);
