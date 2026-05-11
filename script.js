@@ -29,6 +29,7 @@ let toastTimer = null;
 let currentMode = "select";
 let dirty = false;
 let pinCount = 0;
+let selectedPlanName = "";
 
 function showToast(message) {
   clearTimeout(toastTimer);
@@ -43,6 +44,39 @@ function setSavedState(saved) {
   $("#savedBadge").style.background = saved ? "#e6f9fa" : "#fff7e6";
   $("#savedBadge").style.color = saved ? "#07c5d2" : "#d99000";
   $("#savedBadge").style.borderColor = saved ? "#07c5d2" : "#ffc266";
+}
+
+function setPlanName(name) {
+  selectedPlanName = name.trim();
+  const hasPlanName = selectedPlanName.length > 0;
+  $("#planTitle").textContent = hasPlanName ? selectedPlanName : "구역 계획을 선택하세요";
+  $("#planSelector").classList.toggle("is-empty", !hasPlanName);
+}
+
+function openCreatePlanDialog() {
+  $("#createPlanDialog").classList.add("show");
+  $("#createPlanDialog").setAttribute("aria-hidden", "false");
+  $("#planNameInput").value = selectedPlanName;
+  setTimeout(() => $("#planNameInput").focus(), 0);
+}
+
+function closeCreatePlanDialog() {
+  $("#createPlanDialog").classList.remove("show");
+  $("#createPlanDialog").setAttribute("aria-hidden", "true");
+}
+
+function saveCreatePlan() {
+  const planName = $("#planNameInput").value.trim();
+
+  if (!planName) {
+    showToast("구역 계획 이름을 입력하세요.");
+    return;
+  }
+
+  setPlanName(planName);
+  setSavedState(true);
+  closeCreatePlanDialog();
+  showToast("구역 계획을 저장했습니다.");
 }
 
 function setMode(mode, fromHelp = false) {
@@ -95,6 +129,19 @@ function setOsmLayer(styleName) {
 
 $("#osmFrame").addEventListener("load", () => {
   $("#map").classList.remove("is-loading");
+});
+
+$("#planSelector").addEventListener("click", openCreatePlanDialog);
+
+$("#cancelCreatePlan").addEventListener("click", () => {
+  closeCreatePlanDialog();
+  setPlanName(selectedPlanName);
+});
+
+$("#saveCreatePlan").addEventListener("click", saveCreatePlan);
+
+$("#planNameInput").addEventListener("keydown", (event) => {
+  if (event.key === "Enter") saveCreatePlan();
 });
 
 $("#zoomIn").addEventListener("click", () => {
@@ -221,6 +268,7 @@ document.addEventListener("keydown", (event) => {
     $("#deleteDialog").classList.remove("show");
     $("#deleteDialog").setAttribute("aria-hidden", "true");
     $("#stylePopover").classList.remove("show");
+    $("#stylePopover").setAttribute("aria-hidden", "true");
     showToast("선택과 임시 모드를 해제했습니다.");
   }
 
@@ -236,4 +284,6 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+setPlanName("");
 setMode("select", true);
+setTimeout(() => $("#planNameInput").focus(), 0);

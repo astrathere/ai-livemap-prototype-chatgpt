@@ -29,8 +29,10 @@
         <button class="icon-button menu-button" type="button" id="panelToggle" aria-label="패널 접기">
           <span></span><span></span><span></span>
         </button>
-        <strong class="plan-title">구역 계획 이름 표시</strong>
-        <span class="version-badge">1.0.0</span>
+        <button class="plan-selector is-empty" id="planSelector" type="button" aria-label="구역 계획 선택">
+          <span id="planTitle">구역 계획을 선택하세요</span>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6.2 8 10l4-3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
         <span class="saved-badge" id="savedBadge">저장됨</span>
         <button class="icon-button more-button" type="button" aria-label="더보기">•••</button>
       </div>
@@ -119,6 +121,18 @@
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <div class="modal-backdrop create-plan-backdrop show" id="createPlanDialog" aria-hidden="false">
+      <div class="dialog create-plan-dialog" role="dialog" aria-modal="true" aria-labelledby="createPlanTitle" aria-describedby="createPlanDescription">
+        <h2 id="createPlanTitle">새로운 구역 계획을 생성하세요</h2>
+        <p id="createPlanDescription">구역을 설정하여 에이전트의 활동범위를 정하고<br />구역별 에이전트의 커버리지를 조회할 수 있어요</p>
+        <input id="planNameInput" class="plan-name-input" type="text" placeholder="구역 계획 이름을 입력하세요" autocomplete="off" />
+        <div class="dialog-actions">
+          <button type="button" class="secondary-button" id="cancelCreatePlan">취소</button>
+          <button type="button" class="primary-button" id="saveCreatePlan">저장</button>
+        </div>
+      </div>
+    </div>
 
     <div class="modal-backdrop" id="deleteDialog" aria-hidden="true">
       <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="deleteTitle">
