@@ -3,6 +3,27 @@ console.info("[AI LiveMap] OSM embed version loaded");
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
+const mapViews = {
+  default: {
+    label: "OSM 기본",
+    layer: "mapnik",
+    bbox: "126.731%2C37.437%2C127.020%2C37.610",
+    marker: "37.541%2C126.879"
+  },
+  hot: {
+    label: "OSM HOT",
+    layer: "hot",
+    bbox: "126.731%2C37.437%2C127.020%2C37.610",
+    marker: "37.541%2C126.879"
+  },
+  wide: {
+    label: "넓은 보기",
+    layer: "mapnik",
+    bbox: "126.610%2C37.360%2C127.140%2C37.700",
+    marker: "37.541%2C126.879"
+  }
+};
+
 const toast = $("#toast");
 let toastTimer = null;
 let currentMode = "select";
@@ -56,20 +77,25 @@ function setMode(mode, fromHelp = false) {
   if (!fromHelp) showToast(modeLabels[mode] || "모드가 변경되었습니다.");
 }
 
-function setOsmLayer(layer) {
-  const iframe = $("#map iframe");
-  const base = "https://www.openstreetmap.org/export/embed.html?bbox=126.731%2C37.437%2C127.020%2C37.610";
-  const layerValue = layer === "hot" ? "hot" : "mapnik";
-  iframe.src = `${base}&layer=${layerValue}&marker=37.541%2C126.879`;
-  showToast(layer === "hot" ? "OSM HOT 지도로 변경했습니다." : "OSM 기본 지도로 변경했습니다.");
+function buildMapUrl(view) {
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${view.bbox}&layer=${view.layer}&marker=${view.marker}`;
+}
+
+function setOsmLayer(styleName) {
+  const view = mapViews[styleName] || mapViews.default;
+  const iframe = $("#osmFrame");
+  $("#map").classList.add("is-loading");
+  iframe.src = buildMapUrl(view);
+  showToast(`${view.label}로 변경했습니다.`);
 
   $$(".map-style-popover button").forEach((button) => {
-    const shouldSelect =
-      (layer === "hot" && button.dataset.style === "gray") ||
-      (layer !== "hot" && button.dataset.style !== "gray");
-    button.classList.toggle("selected", shouldSelect);
+    button.classList.toggle("selected", button.dataset.style === styleName);
   });
 }
+
+$("#osmFrame").addEventListener("load", () => {
+  $("#map").classList.remove("is-loading");
+});
 
 $("#zoomIn").addEventListener("click", () => {
   showToast("OSM 임베드 지도에서는 지도 내부의 + 버튼으로 확대하세요.");
@@ -88,7 +114,7 @@ $("#layerButton").addEventListener("click", (event) => {
 
 $$(".map-style-popover button").forEach((button) => {
   button.addEventListener("click", () => {
-    setOsmLayer(button.dataset.style === "gray" ? "hot" : "mapnik");
+    setOsmLayer(button.dataset.style);
     $("#stylePopover").classList.remove("show");
     $("#stylePopover").setAttribute("aria-hidden", "true");
   });

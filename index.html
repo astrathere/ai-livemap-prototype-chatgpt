@@ -8,11 +8,18 @@
 </head>
 <body>
   <div class="app-shell">
-    <div id="map" class="osm-embed-map" aria-label="OpenStreetMap 지도">
+    <div id="map" class="osm-embed-map is-loading" aria-label="OpenStreetMap 지도">
+      <div class="map-fallback" aria-hidden="true">
+        <strong>OpenStreetMap</strong>
+        <span>지도를 불러오는 중입니다.</span>
+        <a href="https://www.openstreetmap.org/?mlat=37.541&amp;mlon=126.879#map=12/37.541/126.879" target="_blank" rel="noopener">새 창에서 지도 열기</a>
+      </div>
       <iframe
+        id="osmFrame"
         title="OpenStreetMap"
         src="https://www.openstreetmap.org/export/embed.html?bbox=126.731%2C37.437%2C127.020%2C37.610&amp;layer=mapnik&amp;marker=37.541%2C126.879"
         loading="eager"
+        allowfullscreen
         referrerpolicy="no-referrer-when-downgrade">
       </iframe>
     </div>
@@ -51,9 +58,9 @@
     </aside>
 
     <div class="map-style-popover" id="stylePopover" aria-hidden="true">
-      <button data-style="street" class="selected" type="button">OSM 기본</button>
-      <button data-style="gray" type="button">OSM HOT</button>
-      <button data-style="satellite" type="button">OSM 기본 2</button>
+      <button data-style="default" class="selected" type="button">OSM 기본</button>
+      <button data-style="hot" type="button">OSM HOT</button>
+      <button data-style="wide" type="button">넓은 보기</button>
     </div>
 
     <div class="mode-help" aria-label="조작 가이드">
