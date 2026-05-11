@@ -1,3 +1,4 @@
+console.info('[AI LiveMap] script.js loaded');
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
@@ -113,6 +114,17 @@ function setBaseLayer(style, silent = false) {
       setBaseLayer("fallback", true);
       showToast("지도 타일 로딩이 불안정해 기본 지도로 전환했습니다.");
     }
+  });
+
+  currentBaseLayer.on("tileload", () => {
+    if (!window.__aiLiveMapFirstTileLoaded) {
+      window.__aiLiveMapFirstTileLoaded = true;
+      console.info("[AI LiveMap] first map tile loaded");
+    }
+  });
+
+  currentBaseLayer.on("tileerror", (event) => {
+    console.warn("[AI LiveMap] map tile failed", event?.tile?.src || event);
   });
 
   currentBaseLayer.addTo(map);
