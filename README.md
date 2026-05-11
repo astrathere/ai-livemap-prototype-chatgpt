@@ -62,3 +62,18 @@ GitHub Pages의 프로젝트 사이트에서는 `/script.js`, `/style.css`처럼
 ```
 
 브라우저 개발자도구 Console에서 `[AI LiveMap] script.js loaded`가 보이면 JS 파일이 정상 로드된 것입니다.
+
+
+## v iframe OSM 임베드 버전
+
+이 버전은 Leaflet 타일 레이어 방식 대신 OpenStreetMap 공식 embed iframe을 사용합니다.
+
+이유:
+- GitHub Pages에서 Leaflet은 로드되지만 지도 타일만 회색으로 보이는 환경 대응
+- 브라우저/확장 프로그램/네트워크에서 개별 타일 요청이 불안정한 경우를 회피
+- 최소한 배포 URL에서 지도 화면이 안정적으로 보이도록 처리
+
+제약:
+- 지도 자체는 iframe 내부에서 직접 드래그/확대/축소합니다.
+- 외부 툴바의 확대/축소 버튼은 안내 토스트만 표시합니다.
+- 실제 핀/구역/링크 편집은 향후 Leaflet/Map SDK 방식으로 다시 연결하는 것이 적합합니다.
