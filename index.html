@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI 라이브맵 작업자용 - 배포용 프로토타입</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIINfQttw3JzvA8hJ1QD5r8N4t0wFtA7ELk="
+    crossorigin=""
+  />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <div id="map" aria-label="지도"></div>
+
+    <section class="plan-panel" id="planPanel" aria-label="구역 계획 패널">
+      <div class="plan-header">
+        <button class="icon-button menu-button" type="button" id="panelToggle" aria-label="패널 접기">
+          <span></span><span></span><span></span>
+        </button>
+        <strong class="plan-title">구역 계획 이름 표시</strong>
+        <span class="version-badge">1.0.0</span>
+        <span class="saved-badge" id="savedBadge">저장됨</span>
+        <button class="icon-button more-button" type="button" aria-label="더보기">•••</button>
+      </div>
+
+      <div class="panel-search">
+        <input id="searchInput" type="search" placeholder="검색어를 입력하세요." />
+        <button type="button" id="searchButton" aria-label="검색">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.6 4a6.6 6.6 0 0 1 5.26 10.6l3.26 3.26-1.26 1.26-3.26-3.26A6.6 6.6 0 1 1 10.6 4Zm0 1.8a4.8 4.8 0 1 0 0 9.6 4.8 4.8 0 0 0 0-9.6Z"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <button class="side-handle" id="sideHandle" type="button" aria-label="좌측 패널 접기/펼치기">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 3 5.5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+
+    <aside class="map-tools" aria-label="지도 도구">
+      <button type="button" class="map-tool" id="layerButton" aria-label="지도 종류">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4 8 4-8 4-8-4 8-4Zm-6.3 7.2L12 14.35l6.3-3.15 1.7.85-8 4-8-4 1.7-.85Zm0 4L12 18.35l6.3-3.15 1.7.85-8 4-8-4 1.7-.85Z"/></svg>
+      </button>
+      <div class="zoom-group">
+        <button type="button" class="map-tool" id="zoomIn" aria-label="확대">+</button>
+        <button type="button" class="map-tool" id="zoomOut" aria-label="축소">−</button>
+      </div>
+    </aside>
+
+    <div class="map-style-popover" id="stylePopover" aria-hidden="true">
+      <button data-style="street" class="selected" type="button">일반 지도</button>
+      <button data-style="gray" type="button">그레이 지도</button>
+      <button data-style="satellite" type="button">위성 지도</button>
+    </div>
+
+    <div class="mode-help" aria-label="조작 가이드">
+      <button class="help-item active" data-mode="select" type="button">
+        <span class="mouse-icon">◱</span><span>선택</span>
+      </button>
+      <button class="help-item" data-mode="area" type="button">
+        <span class="mouse-icon rotate">◱</span><span>구역 설정</span>
+      </button>
+      <button class="help-item" data-mode="multi" type="button">
+        <span class="keycap">Ctrl</span><span>멀티 선택</span>
+      </button>
+      <button class="help-item" data-mode="range" type="button">
+        <span class="range-icon">□</span><span>범위 선택</span>
+      </button>
+      <button class="help-item" data-mode="clear" type="button">
+        <span class="esc-icon">Esc</span><span>선택 해제</span>
+      </button>
+      <span class="divider" aria-hidden="true"></span>
+      <button class="help-close" id="closeHelp" type="button" aria-label="조작 가이드 닫기">×</button>
+    </div>
+
+    <div class="edit-toolbar" aria-label="편집 툴바">
+      <button class="tool-button active" id="openButton" type="button" title="열기">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 6.5h6l1.7 2h9.3v9.2a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2V6.5Zm1.7 1.7v9.5c0 .17.13.3.3.3h13c.17 0 .3-.13.3-.3v-7.5h-8.4l-1.7-2H5.2Z"/></svg>
+      </button>
+      <button class="tool-button" id="saveDraftButton" type="button" title="임시 저장">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5V4Zm2 2v12h10V8.1L14.9 6H7Zm2 0h5v4H9V6Zm0 8h6v2H9v-2Z"/></svg>
+      </button>
+      <button class="tool-button" id="deleteButton" type="button" title="삭제">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l1 2h4v2H4V6h4l1-2Zm-2 6h10l-.7 10H7.7L7 10Zm2.1 2 .42 6h4.96l.42-6H9.1Z"/></svg>
+      </button>
+
+      <span class="toolbar-divider" aria-hidden="true"></span>
+
+      <button class="tool-button" id="undoButton" type="button" title="실행 취소">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7H5l4-4v2h5.5a5.5 5.5 0 1 1 0 11H9v-2h5.5a3.5 3.5 0 1 0 0-7H9Z"/></svg>
+      </button>
+      <button class="tool-button" id="redoButton" type="button" title="다시 실행">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 7h4l-4-4v2H9.5a5.5 5.5 0 1 0 0 11H15v-2H9.5a3.5 3.5 0 1 1 0-7H15Z"/></svg>
+      </button>
+
+      <span class="toolbar-divider" aria-hidden="true"></span>
+
+      <button class="tool-button" id="moveButton" type="button" title="이동">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 3 3h-2v6h6V9l3 3-3 3v-2h-6v6h2l-3 3-3-3h2v-6H5v2l-3-3 3-3v2h6V5H9l3-3Z"/></svg>
+      </button>
+      <button class="tool-button" id="pinButton" type="button" title="핀 추가">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7Zm0 2a5 5 0 0 0-5 5c0 2.7 3 7.2 5 9.6 2-2.4 5-6.9 5-9.6a5 5 0 0 0-5-5Zm0 2.8a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4Z"/></svg>
+      </button>
+      <button class="tool-button" id="routeButton" type="button" title="경로/링크">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6a3 3 0 1 1 2.83 2H14a4 4 0 0 1 0 8H9.83a3 3 0 1 1 0-2H14a2 2 0 0 0 0-4H9.83A3 3 0 0 1 7 6Zm0-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm0 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"/></svg>
+      </button>
+
+      <button class="confirm-button" id="confirmButton" type="button">확인</button>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <div class="modal-backdrop" id="deleteDialog" aria-hidden="true">
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="deleteTitle">
+        <h2 id="deleteTitle">선택 항목을 삭제할까요?</h2>
+        <p>프로토타입에서는 지도에 표시된 임시 마커와 선택 상태만 삭제됩니다.</p>
+        <div class="dialog-actions">
+          <button type="button" class="secondary-button" id="cancelDelete">취소</button>
+          <button type="button" class="danger-button" id="confirmDelete">삭제</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin="">
+  </script>
+  <script src="./script.js"></script>
+</body>
+</html>
